@@ -1,16 +1,16 @@
 package com.ad.index;
 
 import com.alibaba.fastjson.JSON;
-import com.imooc.ad.dump.DConstant;
-import com.imooc.ad.dump.table.AdCreativeTable;
-import com.imooc.ad.dump.table.AdCreativeUnitTable;
-import com.imooc.ad.dump.table.AdPlanTable;
-import com.imooc.ad.dump.table.AdUnitDistrictTable;
-import com.imooc.ad.dump.table.AdUnitItTable;
-import com.imooc.ad.dump.table.AdUnitKeywordTable;
-import com.imooc.ad.dump.table.AdUnitTable;
-import com.imooc.ad.handler.AdLevelDataHandler;
-import com.imooc.ad.mysql.constant.OpType;
+import com.ad.dump.DConstant;
+import com.ad.dump.table.AdCreativeTable;
+import com.ad.dump.table.AdCreativeUnitTable;
+import com.ad.dump.table.AdPlanTable;
+import com.ad.dump.table.AdUnitDistrictTable;
+import com.ad.dump.table.AdUnitItTable;
+import com.ad.dump.table.AdUnitKeywordTable;
+import com.ad.dump.table.AdUnitTable;
+import com.ad.handler.AdLevelDataHandler;
+import com.ad.mysql.constant.OpType;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -26,17 +26,25 @@ import java.util.stream.Collectors;
  * Created by Mr.F on 2019/5/4.
  */
 @Component
-@DependsOn("dataTable")
+@DependsOn("dataTable")//会依赖DataTable
 public class IndexFileLoader {
 
+    /**
+     * 被@PostConstruct修饰的方法会在服务器加载Servlet的时候运行
+     * 并且只会被服务器执行一次。
+     * 服务器加载Servlet时会有以下流程：
+     * Servlet构造函数 -> PostConstruct注解修饰的方法 -> Init -> Service -> destroy -> PreDestroy ->服务器卸载Servlet
+     * 这里是想让服务器刚初始化时就会完成全量数据的加载,并且加载的时候一定按照层级依赖的关系进行加载
+     */
     @PostConstruct
     public void init() {
-
+        //对AdPlan表的加载
         List<String> adPlanStrings = loadDumpData(
                 String.format("%s%s",
                         DConstant.DATA_ROOT_DIR,
                         DConstant.AD_PLAN)
         );
+        //从数据库读取出来的是JSON格式的String，这里需要遍历的将其反序列化成AdPlanTable
         adPlanStrings.forEach(p -> AdLevelDataHandler.handleLevel2(
                 JSON.parseObject(p, AdPlanTable.class),
                 OpType.ADD
@@ -102,13 +110,13 @@ public class IndexFileLoader {
                 OpType.ADD
         ));
     }
-
+    //实现读取文件并将其转换成List<String>
     private List<String> loadDumpData(String fileName) {
 
         try (BufferedReader br = Files.newBufferedReader(
-                Paths.get(fileName)
+                Paths.get(fileName)//获取当前文件的位置
         )) {
-            return br.lines().collect(Collectors.toList());
+            return br.lines().collect(Collectors.toList());//该方法能实现将流中的String收集成List
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage());
         }

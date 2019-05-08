@@ -66,6 +66,33 @@ public class AdLevelDataHandler {
         );
     }
     //由于AdUnit依赖于AdPlan，所以在第三层级
+    public static void handleLevel3(AdUnitTable unitTable, OpType type) {
+
+        AdPlanObject adPlanObject = DataTable.of(
+                AdPlanIndex.class
+        ).get(unitTable.getPlanId());
+        if (null == adPlanObject) {
+            log.error("handleLevel3 found AdPlanObject error: {}",
+                    unitTable.getPlanId());
+            return;
+        }
+
+        AdUnitObject unitObject = new AdUnitObject(
+                unitTable.getUnitId(),
+                unitTable.getUnitStatus(),
+                unitTable.getPositionType(),
+                unitTable.getPlanId(),
+                adPlanObject
+        );
+
+        handleBinlogEvent(
+                DataTable.of(AdUnitIndex.class),
+                unitTable.getUnitId(),
+                unitObject,
+                type
+        );
+    }
+
     public static void handleLevel3(AdCreativeUnitTable creativeUnitTable,
                                     OpType type) {
 
