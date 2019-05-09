@@ -43,6 +43,7 @@ public class IndexFileLoader {
                 String.format("%s%s",
                         DConstant.DATA_ROOT_DIR,
                         DConstant.AD_PLAN)
+
         );
         //从数据库读取出来的是JSON格式的String，这里需要遍历的将其反序列化成AdPlanTable
         adPlanStrings.forEach(p -> AdLevelDataHandler.handleLevel2(
